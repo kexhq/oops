@@ -89,17 +89,3 @@
    these pages have no use for: the room goes on the content itself. */
 main.content { padding: 2.5rem 0 4rem; }
 .content.prose > h1 { margin-top: 0; }
-
-/* What a program or a language model should read instead of the HTML. */
-footer.machine {
-  border-top: 1px solid var(--line);
-  margin-top: 1rem;
-  padding: 1.25rem 0 2.5rem;
-  font-size: 0.85rem;
-  line-height: 1.6;
-  color: var(--muted);
-}
-footer.machine p { max-width: 48rem; margin: 0; }
-footer.machine strong { color: var(--ink-soft); font-weight: 600; }
-footer.machine a { color: var(--accent-strong); }
-footer.machine code { font-family: var(--font-mono); font-size: 0.92em; }

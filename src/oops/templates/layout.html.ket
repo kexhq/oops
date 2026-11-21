@@ -31,10 +31,8 @@ params: [title: String, root: String, description: String, markdown: String, con
 <%== content %>
       </main>
     </div>
-    <footer class="machine">
-      <div class="wrap">
-        <p><strong>Reading this with a program or a language model?</strong> Every page here is also plain Markdown. <a href="/llms.txt"><code>/llms.txt</code></a> explains the codes and links each one's Markdown, <code>/&lt;CODE&gt;.md</code> is one code (<a href="<%= markdown %>">this page</a>), <a href="/llms-full.txt"><code>/llms-full.txt</code></a> is every code with its explanation in one file, and <a href="/registry.json"><code>/registry.json</code></a> is the compiler's own <code>kex --explain all --json</code>.</p>
-      </div>
+    <footer class="foot">
+      <div class="wrap">Generated from <code>kex --explain all --json</code> · <a href="/llms.txt">llms.txt</a> · <a href="<%= markdown %>">Markdown</a> · <a href="/llms-full.txt">llms-full.txt</a> · <a href="/registry.json">registry.json</a> · <a href="https://kex.run">kex.run</a></div>
     </footer>
   </body>
 </html>
