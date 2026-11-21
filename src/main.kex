@@ -10,16 +10,16 @@
 using OptionParser
 using Oops.Site, only: [Paths]
 
-let CLI = OptionParser.define("oops", "Build and serve the Kex error and warning registry")
-  .string("out", None, "The site's root directory", Just("site"), false)
-  .string("kex", None, "The compiler to read the registry from", Just("kex"), false)
-  .string("registry", None, "A saved `kex --explain all --json` to read instead", None, false)
-  .integer("port", None, "The port `serve` listens on", Just("4323"), false)
-  .command("build", "[--out <dir>] [--kex <path> | --registry <file>]", "Write the site", ~build)
-  .command("serve", "[--out <dir>] [--port <n>]", "Serve a built site locally", ~serve)
-
 main(args) do
-  System.exit(CLI.run(args))
+  let cli = OptionParser.define("oops", "Build and serve the Kex error and warning registry")
+    .string("out", None, "The site's root directory", Just("site"), false)
+    .string("kex", None, "The compiler to read the registry from", Just("kex"), false)
+    .string("registry", None, "A saved `kex --explain all --json` to read instead", None, false)
+    .integer("port", None, "The port `serve` listens on", Just("4323"), false)
+    .command("build", "[--out <dir>] [--kex <path> | --registry <file>]", "Write the site", ~build)
+    .command("serve", "[--out <dir>] [--port <n>]", "Serve a built site locally", ~serve)
+
+  System.exit(cli.run(args))
 end
 
 foul build(options: ParsedOptions) -> Integer do

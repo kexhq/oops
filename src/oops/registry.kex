@@ -62,7 +62,7 @@ module Oops.Registry do
 
   # The registry in +text+, the JSON `kex --explain all --json` writes.
   parse : String -> Result<Registry, String>
-  foul parse(text) do
+  let parse(text) do
     let document = JSON.parse(text).mapError { |error| "the registry is not JSON: ${error}" }.try
     let fields = Type.named("Oops.Registry.Registry")
     let entries = Type.named("Oops.Registry.Entry")

@@ -61,7 +61,7 @@ module Oops.Site do
     return FS.File.write(path, text).mapError { |error| "cannot write ${path}: ${error}" }
   end
 
-  foul describe(error: Any) -> String = "${error}"
+  let describe(error: Any) -> String = "${error}"
 
   foul copyAssets(paths: Paths) -> Result<Void, String> do
     let names = FS.Directory.files(paths.assets).mapError(~describe).try
