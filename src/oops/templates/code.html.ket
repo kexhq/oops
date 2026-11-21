@@ -1,5 +1,5 @@
 ---
-params: [code: String, name: String, severity: String, stage: String, message: String, explanation: String, contribute: String]
+params: [code: String, name: String, severity: String, stage: String, message: String, explanation: String, contribute: String, report: String]
 ---
 <p class="crumbs"><a href="../index.html">All codes</a> › <%= stage %></p>
 <h1 class="code-title"><%= code %></h1>
@@ -11,3 +11,4 @@ params: [code: String, name: String, severity: String, stage: String, message: S
 <%== explanation %>
 <p class="edit"><a href="<%= contribute %>">Edit this explanation</a></p>
 <% end %>
+<p class="edit">Is this diagnostic reported where it should not be, missing where it should be, or saying the wrong thing? <a href="<%= report %>">Report it</a> on the compiler's issue tracker.</p>

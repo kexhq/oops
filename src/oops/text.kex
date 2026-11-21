@@ -80,6 +80,7 @@ module Oops.Text do
       "- Message: ${inlineCode(entry.template)}",
       "- Slots: ${slots}",
       "- Page: ${site}/${entry.code}/",
+      "- Report a problem with it: ${Oops.Site.reportLink(entry)}",
       "",
       "The compiler reports it as:",
       "",

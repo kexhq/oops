@@ -5,6 +5,7 @@ module Oops.Site do
   using Oops.Registry, only: [Entry, Registry]
   using Markdown
   using Regex
+  using URI
 
   # One stage's codes, as the index lists them.
   record Section do
@@ -111,7 +112,8 @@ module Oops.Site do
       Oops.Registry.stageTitle(entry.stage),
       marked(entry.template),
       explanation,
-      contributeLink(entry.code, explanation.empty?)
+      contributeLink(entry.code, explanation.empty?),
+      reportLink(entry)
     )
     return layout("${entry.code}: ${entry.name} | Kex", "../", plain(entry.template), "/${entry.code}.md", content)
   end
@@ -155,5 +157,32 @@ module Oops.Site do
     let repository = "https://github.com/kexhq/oops"
     return missing then "${repository}/new/main/codes?filename=${code}.md"
       else "${repository}/edit/main/codes/${code}.md"
+  end
+
+  # A link that opens a new kexhq/kex issue about this diagnostic: reported
+  # when it should not be, missing when it should be, or saying the wrong
+  # thing. The title and body are filled in for the reporter to finish.
+  let reportLink(entry: Entry) -> String do
+    let body = [
+      "Diagnostic: [${entry.code}](https://oops.kex.run/${entry.code}/) (`${entry.name}`)",
+      "Kex version (`kex --version`): ",
+      "",
+      "### The program",
+      "",
+      "`".repeat(3) + "kex",
+      "",
+      "`".repeat(3),
+      "",
+      "### What the compiler printed",
+      "",
+      "### What you expected",
+      ""
+    ].join("\n")
+    let query = Query.from([
+      ("title", Just("${entry.code}: ")),
+      ("body", Just(body)),
+      ("labels", Just("Error handling & reporting"))
+    ])
+    "https://github.com/kexhq/kex/issues/new?${query.encode}"
   end
 end
