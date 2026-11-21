@@ -6,13 +6,6 @@ module Oops.Site do
   using Markdown
   using Regex
 
-  # The stages in the order a program meets them, by the names the registry
-  # gives them. A stage the registry names and this list does not is shown
-  # after these, under its own name.
-  let stageOrder -> [String] = [
-    "lexical", "parse", "modules", "scope", "purity", "types", "compile-time", "lowering"
-  ]
-
   # One stage's codes, as the index lists them.
   record Section do
     anchor : String
@@ -50,11 +43,17 @@ module Oops.Site do
     put(FS.Path.join(paths.out, "index.html"), index).try
     put(FS.Path.join(paths.out, "404.html"), notFoundPage()).try
     put(FS.Path.join(paths.out, "CNAME"), "oops.kex.run\n").try
-    registry.entries.each do |entry|
+    put(FS.Path.join(paths.out, "registry.json"), registry.source).try
+    let explained = registry.entries.map { |entry| (entry, explanationSource(entry, paths)) }
+    explained.each do |entry, source|
       let dir = FS.Path.join(paths.out, entry.code)
       FS.Directory.create(dir).mapError(~describe).try
-      put(FS.Path.join(dir, "index.html"), codePage(entry, explanationOf(entry, paths))).try
+      let html = source.empty? then "" else Markdown.toHtml(source)
+      put(FS.Path.join(dir, "index.html"), codePage(entry, html)).try
+      put(FS.Path.join(paths.out, "${entry.code}.md"), Oops.Text.codePage(entry, source)).try
     end
+    put(FS.Path.join(paths.out, "llms.txt"), Oops.Text.index(registry)).try
+    put(FS.Path.join(paths.out, "llms-full.txt"), Oops.Text.full(registry, explained)).try
     return Ok(registry.entries.count + 2)
   end
 
@@ -76,11 +75,12 @@ module Oops.Site do
     return Ok(())
   end
 
-  # The explanation of +entry+ as HTML, from `codes/<CODE>.md`, or empty
-  # when nobody has written one.
-  foul explanationOf(entry: Entry, paths: Paths) -> String do
+  # The hand-written explanation of +entry+, the Markdown of
+  # `codes/<CODE>.md` without its front matter, or empty when nobody has
+  # written one.
+  foul explanationSource(entry: Entry, paths: Paths) -> String do
     let source = FS.Path.join(paths.codes, "${entry.code}.md")
-    return FS.File.read(source).map { |text| Markdown.toHtml(text) }.or("")
+    return FS.File.read(source).map { |text| Oops.Text.withoutFrontMatter(text) }.or("")
   end
 
   foul indexPage(registry: Registry) -> String do
@@ -97,6 +97,7 @@ module Oops.Site do
       "Kex errors and warnings",
       "",
       "Every error and warning the Kex compiler reports, by its code.",
+      "/llms.txt",
       content
     )
   end
@@ -107,12 +108,12 @@ module Oops.Site do
       entry.code,
       entry.name,
       entry.severity,
-      stageTitle(entry.stage),
+      Oops.Registry.stageTitle(entry.stage),
       marked(entry.template),
       explanation,
       contributeLink(entry.code, explanation.empty?)
     )
-    return layout("${entry.code}: ${entry.name} | Kex", "../", plain(entry.template), content)
+    return layout("${entry.code}: ${entry.name} | Kex", "../", plain(entry.template), "/${entry.code}.md", content)
   end
 
   foul notFoundPage() -> String do
@@ -120,28 +121,21 @@ module Oops.Site do
       <h1>Not a code</h1>
       <p class="lede">No diagnostic has that code. <a href="/index.html">Every code</a> is listed on the front page.</p>
     `
-    return layout("Not found | Kex errors and warnings", "/", "No such diagnostic code.", content)
+    return layout("Not found | Kex errors and warnings", "/", "No such diagnostic code.", "/llms.txt", content)
   end
 
-  foul layout(title: String, root: String, description: String, content: String) -> String do
+  foul layout(title: String, root: String, description: String, markdown: String, content: String) -> String do
     let render = Template.html(Kex.embed("templates/layout.html.ket"))
-    return render(title, root, description, content)
+    return render(title, root, description, markdown, content)
   end
 
   foul sections(entries: [Entry]) -> [Section] do
-    let named = entries.map { |e| e.stage }.uniq
-    let known = stageOrder.filter { |s| named.contains?(s) }
-    let others = named.reject { |s| stageOrder.contains?(s) }.sort
-    return (known + others).map do |stage|
-      let rows = entries.filter { |e| e.stage == stage }.sortBy { |e| e.code }.map do |e|
+    return Oops.Registry.stages(entries).map do |stage|
+      let rows = Oops.Registry.inStage(entries, stage).map do |e|
         Row { code: e.code, severity: e.severity, href: "${e.code}/", message: marked(e.template) }
       end
-      Section { anchor: stage, title: stageTitle(stage), rows: rows }
+      Section { anchor: stage, title: Oops.Registry.stageTitle(stage), rows: rows }
     end
-  end
-
-  foul stageTitle(stage: String) -> String do
-    return stage.empty? then "Other" else stage.capitalize.replace("-", " ")
   end
 
   # The template escaped for HTML, each `{slot}` in a span the stylesheet

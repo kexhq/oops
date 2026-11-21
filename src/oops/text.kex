@@ -1,0 +1,132 @@
+# The site as Markdown, for language models and anything else that reads
+# text rather than pages (https://llmstxt.org):
+#
+#   /llms.txt          what the site is, and a link to every code's Markdown
+#   /llms-full.txt     every code, explanation and all, in one file
+#   /<CODE>.md         one code: what the compiler says, and the explanation
+#
+# Each says the same as its HTML page, without the markup.
+
+module Oops.Text do
+  using Oops.Registry, only: [Entry, Registry]
+  using Regex
+
+  let site -> String = "https://oops.kex.run"
+
+  # The text of a Markdown file without its front matter: the `---` block
+  # at its top, if it has one.
+  let withoutFrontMatter(text: String) -> String do
+    return text if !text.startsWith?("---\n")
+    let parts = text.drop(4).split("\n---\n")
+    return text if parts.count < 2
+    parts.drop(1).join("\n---\n").trimStart
+  end
+
+  # `/llms.txt`: the site in a paragraph, then every code, by stage.
+  let index(registry: Registry) -> String do
+    let stages = Oops.Registry.stages(registry.entries).map do |stage|
+      let lines = Oops.Registry.inStage(registry.entries, stage).map do |e|
+        "- [${e.code}](${site}/${e.code}.md): ${e.name}, ${e.severity}: ${e.template}"
+      end
+      "## ${Oops.Registry.stageTitle(stage)}\n\n${lines.join("\n")}\n"
+    end
+    let lede = [
+      "# Kex errors and warnings",
+      "",
+      "> Every error and warning the Kex compiler reports, by its stable code. This",
+      "> list is generated from Kex ${registry.version}, with `kex --explain all --json`.",
+      "",
+      about,
+      "",
+      "- [All of it in one file](${site}/llms-full.txt): every code below with its explanation",
+      "- [The registry as JSON](${site}/registry.json): the compiler's own `kex --explain all --json`",
+      ""
+    ]
+    "${lede.join("\n")}\n${stages.join("\n")}"
+  end
+
+  # A Markdown code fence. Spelled out, it would end a backtick string.
+  let fence -> String = "`".repeat(3)
+
+  # What a reader needs to know to read any code's page.
+  let about -> String = [
+    "The compiler prints a diagnostic as",
+    "",
+    fence,
+    "file.kex:LINE:COLUMN: [KEXET-0001]: Error, type mismatch: expected Integer, got String",
+    fence,
+    "",
+    "followed by the source line with the problem underlined. A code is `KEX`, a",
+    "severity letter (`E` error, `W` warning), a stage letter (`L` lexical, `P`",
+    "parse, `M` modules, `S` scope, `F` purity, `T` types, `C` compile time, `B`",
+    "lowering) and a number. A code is never reused for another problem. In each",
+    "message, `{name}` marks a slot the compiler fills in. `kex --explain CODE`",
+    "prints a code's entry in a terminal."
+  ].join("\n")
+
+  # `/<CODE>.md`: one code.
+  let codePage(entry: Entry, explanation: String) -> String do
+    let label = entry.severity == "error" then "Error" else "Warning"
+    let slots = entry.slots.empty? then "none"
+      else entry.slots.map { |s| "`${s}`" }.join(", ")
+    let body = explanation.empty?
+      then "No explanation of this code has been written yet. The message above is all the compiler says about it."
+      else explanation.trim.replace("](../", "](${site}/")
+    [
+      "# ${entry.code}: ${entry.name}",
+      "",
+      "- Severity: ${entry.severity}",
+      "- Stage: ${Oops.Registry.stageTitle(entry.stage)}",
+      "- Message: ${inlineCode(entry.template)}",
+      "- Slots: ${slots}",
+      "- Page: ${site}/${entry.code}/",
+      "",
+      "The compiler reports it as:",
+      "",
+      fence,
+      "file.kex:LINE:COLUMN: [${entry.code}]: ${label}, ${entry.template}",
+      fence,
+      "",
+      body,
+      ""
+    ].join("\n")
+  end
+
+  # `/llms-full.txt`: every code's Markdown, in the order `llms.txt` lists
+  # them, each heading a level down under its stage.
+  let full(registry: Registry, explained: [(Entry, String)]) -> String do
+    let byCode = Map.from(explained.map { |entry, text| (entry.code, text) })
+    let stages = Oops.Registry.stages(registry.entries).map do |stage|
+      let codes = Oops.Registry.inStage(registry.entries, stage).map do |e|
+        demote(codePage(e, byCode.get(e.code).or("")))
+      end
+      "## ${Oops.Registry.stageTitle(stage)}\n\n${codes.join("\n")}"
+    end
+    "# Kex errors and warnings\n\nEvery code Kex ${registry.version} reports, with its explanation.\n\n${about}\n\n${stages.join("\n")}"
+  end
+
+  # +markdown+ with every heading two levels deeper, so a code's page fits
+  # under a stage's heading. Lines in a fenced block are left alone.
+  let demote(markdown: String) -> String do
+    let (lines, _) = markdown.lines.reduce(([], false)) do |acc, line|
+      let (out, fenced) = acc
+      if line.startsWith?(fence)
+        ([...out, line], !fenced)
+      elif !fenced && line.startsWith?("#")
+        ([...out, "##${line}"], fenced)
+      else
+        ([...out, line], fenced)
+      end
+    end
+    lines.join("\n")
+  end
+
+  # +text+ as a Markdown code span, with a fence longer than any run of
+  # backticks inside it.
+  let inlineCode(text: String) -> String do
+    let longest = text.scan(re`\x60+`).map { |m| m.get(0, "").count }.max.or(0)
+    let fence = "`".repeat(longest + 1)
+    let pad = longest > 0 then " " else ""
+    "${fence}${pad}${text}${pad}${fence}"
+  end
+end

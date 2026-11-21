@@ -36,6 +36,8 @@ module Oops.Registry do
     entries : [Entry]
     # Codes that were once in use and must not be given out again.
     retired : [String]
+    # The JSON it was read from, as the compiler wrote it.
+    source : String
   end
 
   # Reads the registry from the compiler at +kex+.
@@ -72,7 +74,33 @@ module Oops.Registry do
     return fields.construct({
       "version": document.get("version").or("unknown"),
       "entries": built.try,
-      "retired": document.get("retired").or([])
+      "retired": document.get("retired").or([]),
+      "source": text
     })
+  end
+
+  # The stages in the order a program meets them, by the names the registry
+  # gives them. A stage the registry names and this list does not comes
+  # after these, in alphabetical order.
+  let stageOrder -> [String] = [
+    "lexical", "parse", "modules", "scope", "purity", "types", "compile-time", "lowering"
+  ]
+
+  # Every stage some entry is reported in, in the order a program meets them.
+  let stages(entries: [Entry]) -> [String] do
+    let named = entries.map(&.stage).uniq
+    let known = stageOrder.filter { |s| named.contains?(s) }
+    let others = named.reject { |s| stageOrder.contains?(s) }.sort
+    known + others
+  end
+
+  # The entries reported in +stage+, by code.
+  let inStage(entries: [Entry], stage: String) -> [Entry] do
+    entries.filter { |e| e.stage == stage }.sortBy(&.code)
+  end
+
+  # A stage's name as a heading: `compile-time` is "Compile time".
+  let stageTitle(stage: String) -> String do
+    stage.empty? then "Other" else stage.capitalize.replace("-", " ")
   end
 end

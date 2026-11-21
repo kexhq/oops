@@ -1,5 +1,5 @@
 ---
-params: [title: String, root: String, description: String, content: String]
+params: [title: String, root: String, description: String, markdown: String, content: String]
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -13,6 +13,7 @@ params: [title: String, root: String, description: String, content: String]
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..700&family=Plus+Jakarta+Sans:wght@400..700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<%== root %>assets/style.css">
     <link rel="stylesheet" href="<%== root %>assets/oops.css">
+    <link rel="alternate" type="text/markdown" href="<%= markdown %>">
     <link rel="icon" type="image/png" href="<%== root %>icon.png">
   </head>
   <body>
