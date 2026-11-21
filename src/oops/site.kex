@@ -121,7 +121,7 @@ module Oops.Site do
       "url": "${site}/",
       "description": description,
       "inLanguage": "en",
-      "isPartOf": { "@type": "WebSite", "name": "Kex", "url": "https://kex.run/" }
+      "isPartOf": { "@type": "WebSite", "name": "Kex", "url": "https://www.kex.run/" }
     })
     let head = Head {
       title: "Kex errors and warnings: every compiler diagnostic, by code",

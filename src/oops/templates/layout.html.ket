@@ -48,7 +48,7 @@ params: [head: Head, root: String, content: String]
         <span class="brand-sub">oops</span>
         <span class="spacer"></span>
         <a class="back" href="https://docs.kex.run">docs ↗</a>
-        <a class="back" href="https://kex.run">kex.run ↗</a>
+        <a class="back" href="https://www.kex.run">kex.run ↗</a>
       </div>
     </header>
     <div class="wrap">
@@ -57,7 +57,7 @@ params: [head: Head, root: String, content: String]
       </main>
     </div>
     <footer class="foot">
-      <div class="wrap">Generated from <code>kex --explain all --json</code> · <a href="/llms.txt">llms.txt</a> · <a href="<%= head.markdown %>">Markdown</a> · <a href="/llms-full.txt">llms-full.txt</a> · <a href="/registry.json">registry.json</a> · <a href="https://kex.run">kex.run</a></div>
+      <div class="wrap">Generated from <code>kex --explain all --json</code> · <a href="/llms.txt">llms.txt</a> · <a href="<%= head.markdown %>">Markdown</a> · <a href="/llms-full.txt">llms-full.txt</a> · <a href="/registry.json">registry.json</a> · <a href="https://www.kex.run">kex.run</a></div>
     </footer>
   </body>
 </html>
