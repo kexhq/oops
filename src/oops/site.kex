@@ -23,6 +23,23 @@ module Oops.Site do
     message : String
   end
 
+  # What a page says about itself in its <head>: to search engines, to the
+  # sites that unfurl a link into a card, and to programs after its text.
+  record Head do
+    title : String
+    # One or two sentences, what a search result shows under the title.
+    description : String
+    # The page's canonical URL, or empty for a page no search engine
+    # should list (the 404).
+    url : String
+    # Open Graph's kind of page: `website` or `article`.
+    kind : String
+    # The path of the page's Markdown twin.
+    markdown : String
+    # Schema.org JSON-LD, ready to sit inside a <script>, or empty.
+    data : String
+  end
+
   # Where the site's pieces are read from and written to.
   record Paths do
     # The site's root, written from scratch.
@@ -55,6 +72,8 @@ module Oops.Site do
     end
     put(FS.Path.join(paths.out, "llms.txt"), Oops.Text.index(registry)).try
     put(FS.Path.join(paths.out, "llms-full.txt"), Oops.Text.full(registry, explained)).try
+    put(FS.Path.join(paths.out, "sitemap.xml"), sitemap(registry.entries)).try
+    put(FS.Path.join(paths.out, "robots.txt"), "User-agent: *\nAllow: /\nSitemap: ${site}/sitemap.xml\n").try
     return Ok(registry.entries.count + 2)
   end
 
@@ -94,13 +113,25 @@ module Oops.Site do
       sections(registry.entries),
       registry.retired
     )
-    return layout(
-      "Kex errors and warnings",
-      "",
-      "Every error and warning the Kex compiler reports, by its code.",
-      "/llms.txt",
-      content
-    )
+    let description = "Every error and warning the Kex compiler reports, by its stable code: what each means, an example that causes it, and how to fix it."
+    let data = jsonLd({
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Kex errors and warnings",
+      "url": "${site}/",
+      "description": description,
+      "inLanguage": "en",
+      "isPartOf": { "@type": "WebSite", "name": "Kex", "url": "https://kex.run/" }
+    })
+    let head = Head {
+      title: "Kex errors and warnings: every compiler diagnostic, by code",
+      description: description,
+      url: "${site}/",
+      kind: "website",
+      markdown: "/llms.txt",
+      data: data
+    }
+    return layout(head, "", content)
   end
 
   foul codePage(entry: Entry, explanation: String) -> String do
@@ -115,7 +146,80 @@ module Oops.Site do
       contributeLink(entry.code, explanation.empty?),
       reportLink(entry)
     )
-    return layout("${entry.code}: ${entry.name} | Kex", "../", plain(entry.template), "/${entry.code}.md", content)
+    let kind = entry.severity == "error" then "error" else "warning"
+    let title = "${entry.code}: ${entry.name} | Kex ${kind}"
+    let description = codeDescription(entry, explanation)
+    let url = "${site}/${entry.code}/"
+    let stage = Oops.Registry.stageTitle(entry.stage)
+    let data = jsonLd({
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "TechArticle",
+          "headline": "${entry.code}: ${entry.name}",
+          "description": description,
+          "url": url,
+          "inLanguage": "en",
+          "about": "The Kex compiler's ${kind} ${entry.code}, ${entry.template}",
+          "isPartOf": { "@type": "WebSite", "name": "Kex errors and warnings", "url": "${site}/" }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "All codes", "item": "${site}/" },
+            { "@type": "ListItem", "position": 2, "name": stage, "item": "${site}/#${entry.stage}" },
+            { "@type": "ListItem", "position": 3, "name": entry.code, "item": url }
+          ]
+        }
+      ]
+    })
+    let head = Head {
+      title: title, description: description, url: url, kind: "article",
+      markdown: "/${entry.code}.md", data: data
+    }
+    return layout(head, "../", content)
+  end
+
+  let site -> String = "https://oops.kex.run"
+
+  # What a search result says under a code's title: the severity, the
+  # message, then the start of the explanation's first paragraph.
+  let codeDescription(entry: Entry, explanation: String) -> String do
+    let kind = entry.severity == "error" then "error" else "warning"
+    let lead = "Kex ${kind} ${entry.code} (${entry.name}): \u{201C}${entry.template}\u{201D}."
+    let first = firstParagraph(explanation)
+    let stage = Oops.Registry.stageTitle(entry.stage).lowerCase
+    let rest = first.empty? then " Reported at the compiler's ${stage} stage." else " ${first}"
+    clip(lead + rest, 200)
+  end
+
+  # The text of the first paragraph of +html+, the explanation as the page
+  # shows it, tags and entities left out.
+  let firstParagraph(html: String) -> String do
+    let found = html.scan(re`<p>([\s\S]*?)</p>`).first
+    let inner = found.map { |m| m.get(1, "") }.or("")
+    let text = inner.replace(re`<[^>]+>`) { |_| "" }
+      .replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"")
+      .replace("&#39;", "'").replace("&amp;", "&")
+    text.replace(re`\s+`) { |_| " " }.trim
+  end
+
+  # +text+ cut to at most +limit+ characters, at a word, with an ellipsis
+  # when anything was cut.
+  let clip(text: String, limit: Integer) -> String do
+    return text if text.count <= limit
+    let cut = text.take(limit - 1).replace(re`\s+\S*$`) { |_| "" }
+    "${cut.replace(re`[\s,.:;]+$`) { |_| "" }}\u{2026}"
+  end
+
+  # +value+ as JSON that can sit inside a <script>: no `</` to end it early.
+  let jsonLd(value: Any) -> String = JSON.stringify(value).replace("</", "<\\/")
+
+  # Every page a search engine should know about: the index and each code.
+  let sitemap(entries: [Entry]) -> String do
+    let urls = ["${site}/", ...entries.map { |e| "${site}/${e.code}/" }]
+      .map { |url| "  <url><loc>${url}</loc></url>" }
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n${urls.join("\n")}\n</urlset>\n"
   end
 
   foul notFoundPage() -> String do
@@ -123,12 +227,20 @@ module Oops.Site do
       <h1>Not a code</h1>
       <p class="lede">No diagnostic has that code. <a href="/index.html">Every code</a> is listed on the front page.</p>
     `
-    return layout("Not found | Kex errors and warnings", "/", "No such diagnostic code.", "/llms.txt", content)
+    let head = Head {
+      title: "Not found | Kex errors and warnings",
+      description: "No diagnostic has that code.",
+      url: "",
+      kind: "website",
+      markdown: "/llms.txt",
+      data: ""
+    }
+    return layout(head, "/", content)
   end
 
-  foul layout(title: String, root: String, description: String, markdown: String, content: String) -> String do
+  foul layout(head: Head, root: String, content: String) -> String do
     let render = Template.html(Kex.embed("templates/layout.html.ket"))
-    return render(title, root, description, markdown, content)
+    return render(head, root, content)
   end
 
   foul sections(entries: [Entry]) -> [Section] do
@@ -147,9 +259,6 @@ module Oops.Site do
       "<span class=\"slot\">${m.get(1, "")}</span>"
     end
   end
-
-  # The template as plain text, slots kept as written, for a description.
-  foul plain(template: String) -> String = template
 
   # A link that opens GitHub's editor on this code's explanation: a new file
   # when there is none, the existing one otherwise.

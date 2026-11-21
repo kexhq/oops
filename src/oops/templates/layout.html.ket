@@ -1,20 +1,45 @@
 ---
-params: [title: String, root: String, description: String, markdown: String, content: String]
+params: [head: Head, root: String, content: String]
 ---
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><%= title %></title>
-    <meta name="description" content="<%= description %>">
+    <title><%= head.title %></title>
+    <meta name="description" content="<%= head.description %>">
+<% if head.url.empty? %>
+    <meta name="robots" content="noindex">
+<% else %>
+    <link rel="canonical" href="<%= head.url %>">
+    <meta property="og:url" content="<%= head.url %>">
+<% end %>
+    <meta property="og:type" content="<%= head.kind %>">
+    <meta property="og:site_name" content="Kex errors and warnings">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:title" content="<%= head.title %>">
+    <meta property="og:description" content="<%= head.description %>">
+    <meta property="og:image" content="https://oops.kex.run/assets/social.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="A biscuit with a K bitten out of its corner, beside the words Kex errors and warnings.">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<%= head.title %>">
+    <meta name="twitter:description" content="<%= head.description %>">
+    <meta name="twitter:image" content="https://oops.kex.run/assets/social.png">
+    <meta name="theme-color" content="#fcf5e2">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..700&family=Plus+Jakarta+Sans:wght@400..700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<%== root %>assets/style.css">
     <link rel="stylesheet" href="<%== root %>assets/oops.css">
-    <link rel="alternate" type="text/markdown" href="<%= markdown %>">
+    <link rel="alternate" type="text/markdown" href="<%= head.markdown %>">
     <link rel="icon" type="image/png" href="<%== root %>icon.png">
+    <link rel="apple-touch-icon" href="<%== root %>icon.png">
+<% if !head.data.empty? %>
+    <script type="application/ld+json"><%== head.data %></script>
+<% end %>
   </head>
   <body>
     <header class="top">
@@ -32,7 +57,7 @@ params: [title: String, root: String, description: String, markdown: String, con
       </main>
     </div>
     <footer class="foot">
-      <div class="wrap">Generated from <code>kex --explain all --json</code> · <a href="/llms.txt">llms.txt</a> · <a href="<%= markdown %>">Markdown</a> · <a href="/llms-full.txt">llms-full.txt</a> · <a href="/registry.json">registry.json</a> · <a href="https://kex.run">kex.run</a></div>
+      <div class="wrap">Generated from <code>kex --explain all --json</code> · <a href="/llms.txt">llms.txt</a> · <a href="<%= head.markdown %>">Markdown</a> · <a href="/llms-full.txt">llms-full.txt</a> · <a href="/registry.json">registry.json</a> · <a href="https://kex.run">kex.run</a></div>
     </footer>
   </body>
 </html>
