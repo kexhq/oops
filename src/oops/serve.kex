@@ -1,0 +1,81 @@
+# Serves a built site over HTTP, for looking at it before it is published.
+# Adapted from Tey's `tey docs serve`.
+
+module Oops.Serve do
+  using Net.HTTP, only: [Context, Headers, Request, Response, Router, Server]
+  using Net.Socket, only: [TCP]
+
+  record ServedFile do
+    route : String
+    path : String
+  end
+
+  # Serves the files under +out+ on +port+ until stopped.
+  #
+  # @return [Integer] the exit status
+  run : String -> Integer -> Integer
+  foul run(out, port) do
+    let files = collect(out, "/")
+    if files.empty?
+      IO.printError("${Console.RED}error:${Console.RESET} nothing to serve in ${out}; run `tey site:build` first")
+      return 1
+    end
+    let listenPort = match Net.Port.from(port) do
+      Ok(value) => value
+      Error(_) => do
+        IO.printError("${Console.RED}error:${Console.RESET} invalid port ${port}")
+        return 1
+      end
+    end
+    let router = files.reduce(Router.build) do |routes, file|
+      routes.get(file.route, ~serveFile(file.path))
+    end
+    IO.printLine("${Console.GREEN}Serving${Console.RESET} ${out} on http://localhost:${port}")
+    return match Server.serve(TCP.Endpoint.loopback(listenPort), router) do
+      Ok(_) => 0
+      Error(error) => do
+        IO.printError("${Console.RED}error:${Console.RESET} server failed: ${error.message}")
+        1
+      end
+    end
+  end
+
+  # The paths a browser asks for a file by: an index.html also by its
+  # directory, with and without the slash (`/KEXET-0001`, `/KEXET-0001/`),
+  # since the router matches exactly.
+  foul routesFor(prefix: String, name: String) -> [String] do
+    let path = FS.Path.join(prefix, name)
+    return name == "index.html" then [path, prefix, "${prefix}/"] else [path]
+  end
+
+  foul collect(dir: String, prefix: String) -> [ServedFile] do
+    let names = FS.Directory.files(dir).or([])
+    let subdirs = FS.Directory.directories(dir).or([])
+    let here = names.flatMap do |name|
+      routesFor(prefix, name).map { |route| ServedFile { route: route, path: FS.Path.join(dir, name) } }
+    end
+    let below = subdirs.flatMap { |d| collect(FS.Path.join(dir, d), FS.Path.join(prefix, d)) }
+    return here + below
+  end
+
+  foul serveFile(filePath: String, _request: Request<Binary>, _context: Context) -> Response<Binary> do
+    let body = match FS.File.readBytes(filePath) do
+      Ok(bytes) => bytes
+      Error(_) => return Response.text(404, "not found")
+    end
+    # no-cache: the site is rebuilt in place, and a cached page would hide it.
+    let headers = Headers.empty.add("Content-Type", contentType(filePath))
+      .flatMap { |added| added.add("Cache-Control", "no-cache") }
+    return match headers do
+      Ok(value) => Response.binary(200, body, value)
+      Error(error) => Response.text(500, error.message)
+    end
+  end
+
+  foul contentType(path: String) -> String do
+    return "text/html; charset=utf-8" if path.endsWith?(".html")
+    return "text/css; charset=utf-8" if path.endsWith?(".css")
+    return "image/png" if path.endsWith?(".png")
+    return "text/plain; charset=utf-8"
+  end
+end

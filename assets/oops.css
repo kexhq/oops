@@ -1,0 +1,86 @@
+/* oops — what the registry adds to the docs stylesheet (style.css, copied
+   from Tey's docgen). Only its tokens are used, so the two sites stay one
+   look. */
+
+:root {
+  --error: #a3341c;
+  --error-soft: #f6dccf;
+  --warning: #8a6a0a;
+  --warning-soft: #f3e6b4;
+}
+
+.stages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.6rem;
+  margin: 0 0 2rem;
+}
+
+.stages a {
+  font-size: 0.85rem;
+  padding: 0.2rem 0.65rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--bg-subtle);
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+
+.stages a:hover { border-color: var(--accent); color: var(--accent-strong); }
+.stages .count { color: var(--faint); margin-left: 0.2rem; }
+
+.prose table.codes {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  margin: 0 0 1.5rem;
+}
+
+.prose table.codes td {
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+.prose table.codes td.code { white-space: nowrap; width: 1%; }
+
+.prose table.codes td.code a {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.prose table.codes tr.warning td.code a { color: var(--warning); }
+.prose table.codes tr.error td.code a { color: var(--error); }
+
+.slot {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+  border-radius: 4px;
+  padding: 0 0.25em;
+}
+
+.code-title { font-family: var(--font-mono); letter-spacing: 0; }
+
+.badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  margin-right: 0.4rem;
+}
+
+.badge.error { background: var(--error-soft); color: var(--error); }
+.badge.warning { background: var(--warning-soft); color: var(--warning); }
+
+.prose pre.diagnostic { white-space: pre-wrap; }
+.prose pre.diagnostic .slot { background: rgba(244, 226, 184, 0.15); color: #f4e2b8; }
+.prose pre.diagnostic .label.error { color: #f08a6c; font-weight: 600; }
+.prose pre.diagnostic .label.warning { color: #e8c45c; font-weight: 600; }
+
+.missing, .edit { font-size: 0.9rem; color: var(--muted); }

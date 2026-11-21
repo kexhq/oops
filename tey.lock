@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "workspace": {"members": {"oops": "."}, "manifest_fingerprint": "f015f782a809c2e1a5ddf1d226cea85e7a0048a17ebdc380a2153c3641dbd8d6"},
+  "toolchain": {"kex": "0.4.0", "kex_requirement": ">= 0.4.0-rc.4", "otp": 29, "otp_requirement": ""},
+  "packages": {
+    "markdown": {"version": "0.1.6", "source": "git", "git": "https://github.com/kexhq/markdown", "resolved": "refs/tags/v0.1.6", "commit": "23d051e3809c31c485755e7df25029faf1441caf", "subdir": ".", "path": "", "sha256": "dc357afc6b81460cd1cb73728bfbdbed94b7db4da4b5a95213869a39f0aef3b1", "groups": [], "dependencies": [], "plugins": {}, "workspace": false},
+    "oops": {"version": "0.1.0", "source": "workspace", "git": "", "resolved": "", "commit": "", "subdir": "", "path": ".", "sha256": "", "groups": [], "dependencies": ["markdown"], "plugins": {}, "workspace": true}
+  },
+  "plugins": {"approvals": {}}
+}

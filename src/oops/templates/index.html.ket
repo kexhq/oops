@@ -1,0 +1,31 @@
+---
+params: [version: String, errors: Integer, warnings: Integer, sections: [Section], retired: [String]]
+---
+<h1>Errors and warnings</h1>
+<p class="lede">Every diagnostic the Kex compiler reports, by its code. Kex <%= version %> knows <%= errors %> errors and <%= warnings %> warnings. A diagnostic links here as <code>https://oops.kex.run/&lt;code&gt;</code>; <code>kex --explain &lt;code&gt;</code> says the same in a terminal.</p>
+<nav class="stages">
+<% sections.map do |section| %>
+  <a href="#<%= section.anchor %>"><%= section.title %> <span class="count"><%= section.rows.count %></span></a>
+<% end %>
+</nav>
+<% sections.map do |section| %>
+<section class="stage" id="<%= section.anchor %>">
+  <h2><%= section.title %></h2>
+  <table class="codes">
+    <tbody>
+<% section.rows.map do |row| %>
+      <tr class="<%= row.severity %>">
+        <td class="code"><a href="<%= row.href %>"><%= row.code %></a></td>
+        <td class="message"><%== row.message %></td>
+      </tr>
+<% end %>
+    </tbody>
+  </table>
+</section>
+<% end %>
+<% if retired.count > 0 %>
+<section class="stage" id="retired">
+  <h2>Retired</h2>
+  <p>No longer reported, and never given to another diagnostic: <% retired.map do |code| %><code><%= code %></code> <% end %></p>
+</section>
+<% end %>

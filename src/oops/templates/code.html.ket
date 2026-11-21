@@ -1,0 +1,13 @@
+---
+params: [code: String, name: String, severity: String, stage: String, message: String, explanation: String, contribute: String]
+---
+<p class="crumbs"><a href="../index.html">All codes</a> › <%= stage %></p>
+<h1 class="code-title"><%= code %></h1>
+<p class="lede"><span class="badge <%= severity %>"><%= severity %></span> <code class="name"><%= name %></code></p>
+<pre class="code diagnostic"><code><span class="label <%= severity %>">[<%= code %>]: <%= severity == "error" then "Error," else "Warning," %></span> <%== message %></code></pre>
+<% if explanation.empty? %>
+<p class="missing">There is no explanation of this code yet. <a href="<%= contribute %>">Write one</a>: a Markdown file, <code>codes/<%= code %>.md</code>, in the oops repository.</p>
+<% else %>
+<%== explanation %>
+<p class="edit"><a href="<%= contribute %>">Edit this explanation</a></p>
+<% end %>

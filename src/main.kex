@@ -1,0 +1,42 @@
+# oops: builds and serves the Kex error and warning registry.
+#
+#   oops build --out site                     # from the kex on PATH
+#   oops build --out site --kex ../kex/build/kex
+#   oops build --out site --registry codes.json
+#   oops serve --out site --port 4323
+#
+# `tey site:build` and `tey site:serve` run the first and the last.
+
+using OptionParser
+using Oops.Site, only: [Paths]
+
+let CLI = OptionParser.define("oops", "Build and serve the Kex error and warning registry")
+  .string("out", None, "The site's root directory", Just("site"), false)
+  .string("kex", None, "The compiler to read the registry from", Just("kex"), false)
+  .string("registry", None, "A saved `kex --explain all --json` to read instead", None, false)
+  .integer("port", None, "The port `serve` listens on", Just("4323"), false)
+  .command("build", "[--out <dir>] [--kex <path> | --registry <file>]", "Write the site", ~build)
+  .command("serve", "[--out <dir>] [--port <n>]", "Serve a built site locally", ~serve)
+
+main(args) do
+  System.exit(CLI.run(args))
+end
+
+foul build(options: ParsedOptions) -> Integer do
+  let out = options.value("out", "site")
+  let registry = match options.value("registry") do
+    Just(saved) => Oops.Registry.fromFile(saved)
+    None => Oops.Registry.fromCompiler(options.value("kex", "kex"))
+  end
+  let paths = Paths { out: out, codes: "codes", assets: "assets" }
+  let pages = Oops.Site.write(registry.try, paths).try
+  IO.printLine("${Console.GREEN}Wrote${Console.RESET} ${pages} pages to ${out}")
+  return 0
+rescue |error|
+  IO.printError("${Console.RED}error:${Console.RESET} ${error}")
+  return 1
+end
+
+foul serve(options: ParsedOptions) -> Integer do
+  return Oops.Serve.run(options.value("out", "site"), options.integerValue("port").or(4323))
+end

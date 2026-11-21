@@ -1,0 +1,19 @@
+# The Kex error and warning registry, as the site at https://oops.kex.run.
+#
+# Every page comes from the compiler that ships: `kex --explain all --json`
+# lists each diagnostic code with its name, severity, stage and message, and
+# a hand-written `codes/<CODE>.md`, where there is one, explains it.
+package "oops" do
+  version("0.1.0")
+  description("Kex's error and warning registry, as the site at oops.kex.run")
+  kex(">= 0.4.0-rc.4")
+  license("MIT")
+  entrypoint("src/main.kex")
+
+  tey("markdown", git: "https://github.com/kexhq/markdown", tag: "~> 0.1")
+
+  command("site:build", run: "src/main.kex build --out site",
+          description: "Write the site to site/, from the kex on PATH")
+  command("site:serve", run: "src/main.kex serve --out site --port 4323",
+          description: "Serve site/ on http://localhost:4323")
+end

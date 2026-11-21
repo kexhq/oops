@@ -1,0 +1,88 @@
+name: Pages
+
+# Publishes the registry to https://oops.kex.run. The codes come from the
+# compiler, so the site is rebuilt when an explanation changes here, when
+# kexhq/kex asks (a `registry` dispatch, after its main moves), and nightly
+# in case nothing asked.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  repository_dispatch:
+    types: [registry]
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The registry is the compiler's: `kex --explain all --json` on kex's
+      # main, which is also the toolchain the markdown package is built
+      # against (see its CI).
+      - name: Check out Kex
+        uses: actions/checkout@v4
+        with:
+          repository: kexhq/kex
+          ref: main
+          path: kex-src
+
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: "27"
+
+      - name: Install Kex build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake libgmp-dev libpcre2-dev libreadline-dev \
+            libssl-dev libboost-context-dev
+
+      - name: Build Kex and Tey
+        working-directory: kex-src
+        run: |
+          cmake -B build -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DKEX_BOOST_STATIC=ON
+          cmake --build build --parallel "$(getconf _NPROCESSORS_ONLN)"
+          make build-tey
+          make tey-run
+
+      - name: Put `kex` and `tey` on PATH
+        run: |
+          mkdir -p "$HOME/.local/bin"
+          ln -s "$GITHUB_WORKSPACE/kex-src/build/kex" "$HOME/.local/bin/kex"
+          cat > "$HOME/.local/bin/tey" <<WRAP
+          #!/bin/sh
+          export TEY_ERL="$(command -v erl)"
+          exec "$GITHUB_WORKSPACE/kex-src/tey-run" "\$@"
+          WRAP
+          chmod +x "$HOME/.local/bin/tey"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - run: tey install
+      - run: tey site:build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

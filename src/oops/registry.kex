@@ -1,0 +1,78 @@
+# The diagnostic registry, as `kex --explain all --json` writes it: the
+# compiler's version, one entry per code, and the codes no longer in use.
+#
+#   {
+#     "version": "0.4.0-rc.4",
+#     "entries": [
+#       {"code": "KEXET-0001", "name": "TypeMismatch", "severity": "error",
+#        "stage": "types", "template": "type mismatch: expected {expected}, got {actual}",
+#        "slots": ["expected", "actual"], "url": "https://oops.kex.run/KEXET-0001"}
+#     ],
+#     "retired": []
+#   }
+
+module Oops.Registry do
+  # One diagnostic code.
+  record Entry do
+    # `KEXET-0001`: `KEX`, the severity letter, the stage letter, a number.
+    code : String
+    # The name the compiler's sources know it by: `TypeMismatch`.
+    name : String
+    # `error` or `warning`.
+    severity : String
+    # Where in the compiler it is reported: `lexical`, `parse`, `types`, ...
+    stage : String
+    # The message, with a `{slot}` where the compiler fills in a value.
+    template : String
+    # The names of the template's slots, in the order they first appear.
+    slots : [String]
+    # Where the compiler sends a reader: this entry's page on the site.
+    url : String
+  end
+
+  record Registry do
+    # The version of the compiler the registry came from.
+    version : String
+    entries : [Entry]
+    # Codes that were once in use and must not be given out again.
+    retired : [String]
+  end
+
+  # Reads the registry from the compiler at +kex+.
+  #
+  # @param kex [String] the compiler to ask, a path or a name on PATH
+  # @return [Result<Registry, String>] the registry, or why it could not be read
+  fromCompiler : String -> Result<Registry, String>
+  foul fromCompiler(kex) do
+    let ran = Process.run(kex, ["--explain", "all", "--json"]).try
+    if ran.exitCode != 0
+      return Error("`${kex} --explain all --json` exited ${ran.exitCode}: ${ran.stderr.trim}")
+    end
+    return parse(ran.stdout)
+  end
+
+  # Reads a registry saved to +path+ by `kex --explain all --json > path`.
+  fromFile : String -> Result<Registry, String>
+  foul fromFile(path) do
+    let text = FS.File.read(path).mapError { |error| "cannot read ${path}: ${error}" }.try
+    return parse(text)
+  end
+
+  # The registry in +text+, the JSON `kex --explain all --json` writes.
+  parse : String -> Result<Registry, String>
+  foul parse(text) do
+    let document = JSON.parse(text).mapError { |error| "the registry is not JSON: ${error}" }.try
+    let fields = Type.named("Oops.Registry.Registry")
+    let entries = Type.named("Oops.Registry.Entry")
+    let raw = document.get("entries").or([])
+    let parsed = raw.map { |entry| entries.construct(entry) }
+    let built = parsed.reduce(Ok([])) do |acc, entry|
+      acc.flatMap { |list| entry.map { |e| list + [e] } }
+    end
+    return fields.construct({
+      "version": document.get("version").or("unknown"),
+      "entries": built.try,
+      "retired": document.get("retired").or([])
+    })
+  end
+end

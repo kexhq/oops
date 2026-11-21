@@ -1,0 +1,34 @@
+---
+params: [title: String, root: String, description: String, content: String]
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= title %></title>
+    <meta name="description" content="<%= description %>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..700&family=Plus+Jakarta+Sans:wght@400..700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="<%== root %>assets/style.css">
+    <link rel="stylesheet" href="<%== root %>assets/oops.css">
+    <link rel="icon" type="image/png" href="<%== root %>icon.png">
+  </head>
+  <body>
+    <header class="top">
+      <div class="wrap top-inner">
+        <a class="brand" href="<%== root %>index.html">kex</a>
+        <span class="brand-sub">oops</span>
+        <span class="spacer"></span>
+        <a class="back" href="https://docs.kex.run">docs ↗</a>
+        <a class="back" href="https://kex.run">kex.run ↗</a>
+      </div>
+    </header>
+    <div class="wrap">
+      <main class="content prose">
+<%== content %>
+      </main>
+    </div>
+  </body>
+</html>

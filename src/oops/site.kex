@@ -1,0 +1,165 @@
+# Writes the site: an index of every code by stage, and a page per code at
+# `<CODE>/index.html`, so `https://oops.kex.run/KEXET-0001` is that page.
+
+module Oops.Site do
+  using Oops.Registry, only: [Entry, Registry]
+  using Markdown
+  using Regex
+
+  # The stages in the order a program meets them, by the names the registry
+  # gives them. A stage the registry names and this list does not is shown
+  # after these, under its own name.
+  let stageOrder -> [String] = [
+    "lexical", "parse", "modules", "scope", "purity", "types", "compile-time", "lowering"
+  ]
+
+  # One stage's codes, as the index lists them.
+  record Section do
+    anchor : String
+    title : String
+    rows : [Row]
+  end
+
+  # One line of the index.
+  record Row do
+    code : String
+    severity : String
+    href : String
+    # The message, already escaped, with its slots marked.
+    message : String
+  end
+
+  # Where the site's pieces are read from and written to.
+  record Paths do
+    # The site's root, written from scratch.
+    out : String
+    # The hand-written explanations, `<CODE>.md` each.
+    codes : String
+    # The stylesheets and the icon, copied as they are.
+    assets : String
+  end
+
+  # Writes the whole site for +registry+ under +paths.out+.
+  #
+  # @return [Result<Integer, String>] how many pages were written
+  write : Registry -> Paths -> Result<Integer, String>
+  foul write(registry, paths) do
+    FS.Directory.create(FS.Path.join(paths.out, "assets")).mapError(~describe).try
+    copyAssets(paths).try
+    let index = indexPage(registry)
+    put(FS.Path.join(paths.out, "index.html"), index).try
+    put(FS.Path.join(paths.out, "404.html"), notFoundPage()).try
+    put(FS.Path.join(paths.out, "CNAME"), "oops.kex.run\n").try
+    registry.entries.each do |entry|
+      let dir = FS.Path.join(paths.out, entry.code)
+      FS.Directory.create(dir).mapError(~describe).try
+      put(FS.Path.join(dir, "index.html"), codePage(entry, explanationOf(entry, paths))).try
+    end
+    return Ok(registry.entries.count + 2)
+  end
+
+  foul put(path: String, text: String) -> Result<Void, String> do
+    return FS.File.write(path, text).mapError { |error| "cannot write ${path}: ${error}" }
+  end
+
+  foul describe(error: Any) -> String = "${error}"
+
+  foul copyAssets(paths: Paths) -> Result<Void, String> do
+    let names = FS.Directory.files(paths.assets).mapError(~describe).try
+    names.each do |name|
+      let from = FS.Path.join(paths.assets, name)
+      let to = name == "icon.png" then FS.Path.join(paths.out, name)
+        else FS.Path.join(FS.Path.join(paths.out, "assets"), name)
+      let bytes = FS.File.readBytes(from).mapError(~describe).try
+      FS.File.writeBytes(to, bytes).mapError(~describe).try
+    end
+    return Ok(())
+  end
+
+  # The explanation of +entry+ as HTML, from `codes/<CODE>.md`, or empty
+  # when nobody has written one.
+  foul explanationOf(entry: Entry, paths: Paths) -> String do
+    let source = FS.Path.join(paths.codes, "${entry.code}.md")
+    return FS.File.read(source).map { |text| Markdown.toHtml(text) }.or("")
+  end
+
+  foul indexPage(registry: Registry) -> String do
+    let render = Template.html(Kex.embed("templates/index.html.ket"))
+    let errors = registry.entries.count { |e| e.severity == "error" }
+    let content = render(
+      registry.version,
+      errors,
+      registry.entries.count - errors,
+      sections(registry.entries),
+      registry.retired
+    )
+    return layout(
+      "Kex errors and warnings",
+      "",
+      "Every error and warning the Kex compiler reports, by its code.",
+      content
+    )
+  end
+
+  foul codePage(entry: Entry, explanation: String) -> String do
+    let render = Template.html(Kex.embed("templates/code.html.ket"))
+    let content = render(
+      entry.code,
+      entry.name,
+      entry.severity,
+      stageTitle(entry.stage),
+      marked(entry.template),
+      explanation,
+      contributeLink(entry.code, explanation.empty?)
+    )
+    return layout("${entry.code}: ${entry.name} | Kex", "../", plain(entry.template), content)
+  end
+
+  foul notFoundPage() -> String do
+    let content = `
+      <h1>Not a code</h1>
+      <p class="lede">No diagnostic has that code. <a href="/index.html">Every code</a> is listed on the front page.</p>
+    `
+    return layout("Not found | Kex errors and warnings", "/", "No such diagnostic code.", content)
+  end
+
+  foul layout(title: String, root: String, description: String, content: String) -> String do
+    let render = Template.html(Kex.embed("templates/layout.html.ket"))
+    return render(title, root, description, content)
+  end
+
+  foul sections(entries: [Entry]) -> [Section] do
+    let named = entries.map { |e| e.stage }.uniq
+    let known = stageOrder.filter { |s| named.contains?(s) }
+    let others = named.reject { |s| stageOrder.contains?(s) }.sort
+    return (known + others).map do |stage|
+      let rows = entries.filter { |e| e.stage == stage }.sortBy { |e| e.code }.map do |e|
+        Row { code: e.code, severity: e.severity, href: "${e.code}/", message: marked(e.template) }
+      end
+      Section { anchor: stage, title: stageTitle(stage), rows: rows }
+    end
+  end
+
+  foul stageTitle(stage: String) -> String do
+    return stage.empty? then "Other" else stage.capitalize.replace("-", " ")
+  end
+
+  # The template escaped for HTML, each `{slot}` in a span the stylesheet
+  # sets apart: it is where the compiler writes a name or a type.
+  foul marked(template: String) -> String do
+    return Template.escapeHtml(template).replace(re`\{([a-zA-Z_]+)\}`) do |m|
+      "<span class=\"slot\">${m.get(1, "")}</span>"
+    end
+  end
+
+  # The template as plain text, slots kept as written, for a description.
+  foul plain(template: String) -> String = template
+
+  # A link that opens GitHub's editor on this code's explanation: a new file
+  # when there is none, the existing one otherwise.
+  foul contributeLink(code: String, missing: Bool) -> String do
+    let repository = "https://github.com/kexhq/oops"
+    return missing then "${repository}/new/main/codes?filename=${code}.md"
+      else "${repository}/edit/main/codes/${code}.md"
+  end
+end
