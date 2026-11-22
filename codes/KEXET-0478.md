@@ -21,12 +21,6 @@ example.kex:7:32: [KEXET-0478]: Error, `name` is a field of User, but the receiv
   |
 7 |   IO.printLine(users.first.name)
   |                ^^^^^^^^^^^^^^^^
-example.kex:7:32: [KEXET-0491]: Error, `name` expects argument 1 to be Weekday, but got User?
-
-name : Weekday -> String
-  |
-7 |   IO.printLine(users.first.name)
-  |                ^^^^^^^^^^^^^^^^
 ```
 
 ## Fixing it
