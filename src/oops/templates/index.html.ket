@@ -3,7 +3,7 @@ params: [version: String, errors: Integer, warnings: Integer, explained: Integer
 ---
 <h1>Errors and warnings</h1>
 <p class="lede">Every diagnostic the Kex compiler reports, by its code. Kex <%= version %> knows <%= errors %> errors and <%= warnings %> warnings. A diagnostic links here as <code>https://oops.kex.run/&lt;code&gt;</code>; <code>kex --explain &lt;code&gt;</code> says the same in a terminal.</p>
-<p><%= explained %> of the <%= errors + warnings %> codes have a written explanation, marked <span class="explained" title="Explained">&#9679;</span> below; <a href="#stats">by stage</a>.</p>
+<p><%= explained %> of the <%= errors + warnings %> codes have a written explanation, marked <span class="explained" role="img" aria-label="Explained" title="Explained"></span> below; <a href="#stats">by stage</a>.</p>
 <nav class="stages">
 <% sections.map do |section| %>
   <a href="#<%= section.anchor %>"><%= section.title %> <span class="count"><%= section.rows.count %></span></a>
@@ -16,7 +16,7 @@ params: [version: String, errors: Integer, warnings: Integer, explained: Integer
     <tbody>
 <% section.rows.map do |row| %>
       <tr class="<%= row.severity %>">
-        <td class="code"><a href="<%= row.href %>"><%= row.code %></a><% if row.explained %> <span class="explained" title="Explained">&#9679;</span><% end %></td>
+        <td class="code"><a href="<%= row.href %>"><%= row.code %></a><% if row.explained %> <span class="explained" role="img" aria-label="Explained" title="Explained"></span><% end %></td>
         <td class="message"><%== row.message %></td>
       </tr>
 <% end %>
