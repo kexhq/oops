@@ -12,6 +12,8 @@ module Oops.Site do
     anchor : String
     title : String
     rows : [Row]
+    # How many of +rows+ have a hand-written explanation.
+    explained : Integer
   end
 
   # One line of the index.
@@ -21,6 +23,8 @@ module Oops.Site do
     href : String
     # The message, already escaped, with its slots marked.
     message : String
+    # Whether `codes/<CODE>.md` explains it.
+    explained : Bool
   end
 
   # What a page says about itself in its <head>: to search engines, to the
@@ -57,12 +61,12 @@ module Oops.Site do
   foul write(registry, paths) do
     FS.Directory.create(FS.Path.join(paths.out, "assets")).mapError(~describe).try
     copyAssets(paths).try
-    let index = indexPage(registry)
-    put(FS.Path.join(paths.out, "index.html"), index).try
+    let explained = registry.entries.map { |entry| (entry, explanationSource(entry, paths)) }
+    let written = explained.filter { |_, source| !source.empty? }.map { |entry, _| entry.code }
+    put(FS.Path.join(paths.out, "index.html"), indexPage(registry, written)).try
     put(FS.Path.join(paths.out, "404.html"), notFoundPage()).try
     put(FS.Path.join(paths.out, "CNAME"), "oops.kex.run\n").try
     put(FS.Path.join(paths.out, "registry.json"), registry.source).try
-    let explained = registry.entries.map { |entry| (entry, explanationSource(entry, paths)) }
     explained.each do |entry, source|
       let dir = FS.Path.join(paths.out, entry.code)
       FS.Directory.create(dir).mapError(~describe).try
@@ -103,14 +107,16 @@ module Oops.Site do
     return FS.File.read(source).map { |text| Oops.Text.withoutFrontMatter(text) }.or("")
   end
 
-  foul indexPage(registry: Registry) -> String do
+  # The front page. +written+ are the codes with a hand-written explanation.
+  foul indexPage(registry: Registry, written: [String]) -> String do
     let render = Template.html(Kex.embed("templates/index.html.ket"))
     let errors = registry.entries.count { |e| e.severity == "error" }
     let content = render(
       registry.version,
       errors,
       registry.entries.count - errors,
-      sections(registry.entries),
+      written.count,
+      sections(registry.entries, written),
       registry.retired
     )
     let description = "Every error and warning the Kex compiler reports, by its stable code: what each means, an example that causes it, and how to fix it."
@@ -243,12 +249,18 @@ module Oops.Site do
     return render(head, root, content)
   end
 
-  foul sections(entries: [Entry]) -> [Section] do
+  foul sections(entries: [Entry], written: [String]) -> [Section] do
     return Oops.Registry.stages(entries).map do |stage|
       let rows = Oops.Registry.inStage(entries, stage).map do |e|
-        Row { code: e.code, severity: e.severity, href: "${e.code}/", message: marked(e.template) }
+        Row {
+          code: e.code, severity: e.severity, href: "${e.code}/", message: marked(e.template),
+          explained: written.contains?(e.code)
+        }
       end
-      Section { anchor: stage, title: Oops.Registry.stageTitle(stage), rows: rows }
+      Section {
+        anchor: stage, title: Oops.Registry.stageTitle(stage), rows: rows,
+        explained: rows.count(&.explained)
+      }
     end
   end
 

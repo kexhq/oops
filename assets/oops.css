@@ -89,3 +89,13 @@
    these pages have no use for: the room goes on the content itself. */
 main.content { padding: 2.5rem 0 4rem; }
 .content.prose > h1 { margin-top: 0; }
+
+/* A code with a hand-written explanation, in the index. */
+.explained { color: var(--accent); font-size: 0.6rem; vertical-align: middle; }
+
+.prose table.stats { border-collapse: collapse; font-size: 0.92rem; margin: 0 0 1.5rem; }
+.prose table.stats th,
+.prose table.stats td { padding: 0.35rem 0.9rem 0.35rem 0; border-bottom: 1px solid var(--line); text-align: right; }
+.prose table.stats th:first-child,
+.prose table.stats td:first-child { text-align: left; }
+.prose table.stats tfoot td { font-weight: 600; border-bottom: none; }
