@@ -20,7 +20,6 @@ example.kex:2:1: [KEXWT-0001]: Warning, type annotation for 'add' declares 1 par
   |
 2 | let add(a, b) = a + b
   | ^^^^^^^^^^^^^^^^^^^^^
-No errors found.
 ```
 
 ## Fixing it
