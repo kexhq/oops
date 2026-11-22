@@ -2,8 +2,8 @@
 title: KEXET-0163
 ---
 
-The code calls a function that doesn't exist: not in this file, not in the
-standard library, and not in anything imported.
+There is no function called `shout` in this file, in the standard library,
+or in any module imported here.
 
 ```kex
 main do
@@ -20,7 +20,7 @@ example.kex:2:16: [KEXET-0163]: Error, undefined function: `shout`
 
 ## Fixing it
 
-Define the function, or import the module that has it:
+Write the function, or import the module it comes from:
 
 ```kex
 let shout(text: String) -> String = "${text.upperCase}!"
@@ -30,6 +30,5 @@ main do
 end
 ```
 
-If you expected the standard library to have it, look it up. `kex -s shout`
-finds a name on every type and module, and `kex -s String` lists everything
-a `String` can do.
+`kex -s shout` tells you whether the standard library has anything by that
+name.

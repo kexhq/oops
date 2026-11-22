@@ -2,8 +2,7 @@
 title: KEXET-0472
 ---
 
-A function was called with the wrong number of arguments. The message gives
-how many it takes and how many it got.
+`add` takes two arguments, and it was called with one.
 
 ```kex
 let add(a: Integer, b: Integer) -> Integer = a + b
@@ -20,12 +19,10 @@ example.kex:4:16: [KEXET-0472]: Error, `add` expects 2 argument(s), got 1
   |                ^^^^^^
 ```
 
-With method syntax, the value before the dot counts as the first argument.
-`list.take(2)` is `take(list, 2)`, which is two arguments.
+In a method call, the value before the dot is the first argument, so
+`list.take(2)` passes two.
 
 ## Fixing it
-
-Pass every argument the function takes:
 
 ```kex
 let add(a: Integer, b: Integer) -> Integer = a + b

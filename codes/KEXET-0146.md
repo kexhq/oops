@@ -2,8 +2,8 @@
 title: KEXET-0146
 ---
 
-The code uses a name that nothing in scope defines: no `let` or `var`
-before it, no parameter, no function and no import.
+Nothing called `price` is in scope: no binding, parameter or function, and
+nothing imported.
 
 ```kex
 main do
@@ -18,12 +18,12 @@ example.kex:2:16: [KEXET-0146]: Error, undefined name: `price`
   |                ^^^^^
 ```
 
-When a defined name is close in spelling, you get
-[KEXET-0147](../KEXET-0147/) instead, which suggests it.
+If a defined name is spelled close to it, you get
+[KEXET-0147](../KEXET-0147/) instead, with that name as a suggestion.
 
 ## Fixing it
 
-Define the name before you use it:
+Define it before using it:
 
 ```kex
 main do
@@ -32,5 +32,4 @@ main do
 end
 ```
 
-If you thought it was defined, check the spelling and whether it's defined
-in another file you haven't imported.
+If it lives in another module, import that module.

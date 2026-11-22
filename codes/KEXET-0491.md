@@ -2,9 +2,8 @@
 title: KEXET-0491
 ---
 
-A function was called with an argument of the wrong type. The message says
-which argument, counting from 1, what type the function wants there, and what
-it got. Under the message is the function's signature.
+`double` takes an `Integer`, and it was given a `String`. Arguments are
+counted from 1, and the function's signature is printed under the message.
 
 ```kex
 let double(n: Integer) -> Integer = n * 2
@@ -23,17 +22,14 @@ double : Integer -> Integer
   |                ^^^^^^^^^^^
 ```
 
-When a function has several signatures, all of them are listed, so you can
-see which one you meant.
-
-A `let` whose value doesn't match its annotation is
+A `let` whose value does not fit its annotation is
 [KEXET-0001](../KEXET-0001/). Too many or too few arguments is
 [KEXET-0472](../KEXET-0472/).
 
 ## Fixing it
 
-Pass a value of the right type. Here the text has to be turned into a
-number first, and you choose what to use when it isn't one:
+Pass an `Integer`. Text has to be converted, with a fallback for when it is
+not a number:
 
 ```kex
 let double(n: Integer) -> Integer = n * 2
@@ -43,4 +39,4 @@ main do
 end
 ```
 
-If the function should take this type too, change its parameter instead.
+Or change the parameter's type, if that is the part that is wrong.

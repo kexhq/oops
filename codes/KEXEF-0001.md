@@ -2,9 +2,9 @@
 title: KEXEF-0001
 ---
 
-A function that isn't marked `foul` calls one that is. A `foul` function has
-side effects, such as printing, reading files or talking to the network. A
-plain `let` function can't have any, so it can't call one.
+`greet` is a plain `let` function, so it cannot have side effects, and
+printing is one. Everything in `IO` is `foul`, and only `foul` functions and
+`main` can call them.
 
 ```kex
 let greet(name: String) -> Void = IO.printLine("hello, ${name}")
@@ -21,11 +21,9 @@ example.kex:1:47: [KEXEF-0001]: Error, cannot call foul function 'IO.printLine' 
   |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ```
 
-Everything in `IO` is `foul`. `main` can call `foul` functions.
-
 ## Fixing it
 
-Declare the function with `foul` instead of `let`:
+Make `greet` a `foul` function:
 
 ```kex
 foul greet(name: String) -> Void = IO.printLine("hello, ${name}")
@@ -35,8 +33,8 @@ main do
 end
 ```
 
-Often a better fix is to keep the function pure and let the caller do the
-printing. A function that builds the text, called as
-`IO.printLine(greeting("Ada"))` in `main`, is easier to test.
+You can also keep `greet` pure: have it return the text, and print that in
+`main`. Pure functions are easier to test.
 
-For debugging, `IO.inspect` can be used anywhere, pure code included.
+`IO.inspect` is the exception. It can be called from anywhere, for
+debugging.

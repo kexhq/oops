@@ -2,8 +2,8 @@
 title: KEXET-0424
 ---
 
-The code calls `Module.name`, the module has no function by that name, and
-one of its functions is spelled almost the same. The message suggests it.
+`IO` has no `println`. The compiler suggests the closest name it does have,
+`print`.
 
 ```kex
 main do
@@ -18,9 +18,8 @@ example.kex:2:13: [KEXET-0424]: Error, `IO` has no function `println`, did you m
   |   ^^^^^^^^^^^^^^^^
 ```
 
-The suggestion is only the closest spelling, so it isn't always the right
-one. `IO.print` writes without a newline, while `println` in other
-languages ends the line, so here you want `IO.printLine`.
+The closest spelling is not always the one you want. `IO.print` does not
+end the line. The function that does is `IO.printLine`.
 
 ## Fixing it
 
@@ -29,5 +28,3 @@ main do
   IO.printLine("hi")
 end
 ```
-
-`kex -s IO` lists all of the module's functions.

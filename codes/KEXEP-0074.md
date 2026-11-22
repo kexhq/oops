@@ -2,9 +2,8 @@
 title: KEXEP-0074
 ---
 
-The parser came to a token that can't appear where it is. This is the
-general parse error. The message names the token it found, and the caret
-points at where it found it.
+The parser found a token that cannot go where it is. Here the line ends
+after `+`, so there is nothing to add.
 
 ```kex
 main do
@@ -20,19 +19,9 @@ example.kex:2:14: [KEXEP-0074]: Error, unexpected token: Newline
   |              ^
 ```
 
-Here the line ends right after `+`, so the parser is still waiting for the
-other side of it.
-
-The mistake is often just before the place the caret points at. Look for:
-
-- an operator, comma or `=` with nothing after it
-- an unclosed `(`, `[` or `{`, or an `end` too many or too few
-- syntax from another language, such as `def` or `#{...}` in place of
-  `${...}`
+The same happens with an `=` that has nothing after it.
 
 ## Fixing it
-
-Finish the expression:
 
 ```kex
 main do
@@ -41,5 +30,4 @@ main do
 end
 ```
 
-To split a long expression over lines, wrap it in parentheses. A line can't
-end on an operator otherwise, and can't start with one either.
+To split a long expression over several lines, put it in parentheses.

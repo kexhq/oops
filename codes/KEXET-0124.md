@@ -2,8 +2,8 @@
 title: KEXET-0124
 ---
 
-A `return` gives back a different type from the one the function declares.
-The message points at that `return`.
+`label` says it returns a `String`, but this `return` gives back an
+`Integer`.
 
 ```kex
 let label(n: Integer) -> String do
@@ -25,12 +25,10 @@ example.kex:3:5: [KEXET-0124]: Error, `label` declared to return String but retu
   |     ^^^^^^^^
 ```
 
-When it's the last expression of the body that has the wrong type, the
-error is [KEXET-0127](../KEXET-0127/).
+If the last expression of the body has the wrong type, the error is
+[KEXET-0127](../KEXET-0127/).
 
 ## Fixing it
-
-Return a value of the declared type:
 
 ```kex
 let label(n: Integer) -> String do
