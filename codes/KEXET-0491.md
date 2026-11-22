@@ -14,12 +14,15 @@ end
 ```
 
 ```
-example.kex:4:16: [KEXET-0491]: Error, `double` expects argument 1 to be Integer, but got String
+example.kex:4:23: [KEXET-0491]: Error, `double` expects argument 1 to be Integer, but got String
 
 double : Integer -> Integer
   |
+1 | let double(n: Integer) -> Integer = n * 2
+  |               ------- expected because of this parameter
+ ...
 4 |   IO.printLine(double("4"))
-  |                ^^^^^^^^^^^
+  |                       ^^^ this has type String
 ```
 
 A `let` whose value does not fit its annotation is

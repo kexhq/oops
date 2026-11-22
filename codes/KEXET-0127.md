@@ -14,10 +14,12 @@ end
 ```
 
 ```
-example.kex:1:1: [KEXET-0127]: Error, `half` declared to return Integer but body returns Float64
+example.kex:1:39: [KEXET-0127]: Error, `half` declared to return Integer but body returns Float64
   |
 1 | let half(n: Integer) -> Integer = n / 2.0
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |                         -------   ^^^^^^^ this has type Float64
+  |                         |
+  |                         expected because of this return type
 ```
 
 A `return` of the wrong type is [KEXET-0124](../KEXET-0124/).
