@@ -70,7 +70,7 @@ module Oops.Site do
     explained.each do |entry, source|
       let dir = FS.Path.join(paths.out, entry.code)
       FS.Directory.create(dir).mapError(~describe).try
-      let html = source.empty? then "" else Markdown.toHtml(source)
+      let html = source.empty? then "" else Oops.Output.colour(Markdown.toHtml(source))
       put(FS.Path.join(dir, "index.html"), codePage(entry, html)).try
       put(FS.Path.join(paths.out, "${entry.code}.md"), Oops.Text.codePage(entry, source)).try
     end
