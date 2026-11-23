@@ -1,0 +1,88 @@
+# Compiler output in an explanation, coloured the way the compiler colours it
+# in a terminal. An explanation shows what the compiler prints in a fence
+# with no language:
+#
+#   example.kex:2:3: [KEXEM-0001]: Error, module cannot export itself
+#     |
+#   2 |   export Shapes
+#     |   ^^^^^^^^^^^^^
+#
+# The Markdown renderer leaves such a block plain. Here its source lines go
+# through the same highlighter as a `kex` fence, and the label and the
+# underline are picked out; the location, the message and the gutter stay
+# plain. A plain block that has no diagnostic in it is left as it is.
+
+module Oops.Output do
+  using Regex
+
+  # +html+, an explanation as `Markdown.toHtml` renders it, with every block
+  # of compiler output coloured.
+  foul colour(html: String) -> String do
+    return html.replace(re`<pre class="code"><code>([\s\S]*?)</code></pre>`) do |m|
+      let text = unescape(m.get(1, ""))
+      diagnostic?(text) then "<pre class=\"code output\"><code>${block(text)}</code></pre>"
+        else m.get(0, "")
+    end
+  end
+
+  # Whether +text+ is compiler output: some line of it is a diagnostic's
+  # first line.
+  foul diagnostic?(text: String) -> Bool do
+    return text.lines.any? { |line| !header(line).empty? }
+  end
+
+  foul block(text: String) -> String do
+    return text.lines.map { |line| outputLine(line) }.join("\n")
+  end
+
+  foul outputLine(line: String) -> String do
+    let head = header(line)
+    return head if !head.empty?
+    let source = line.scan(re`^( *\d+ \| ?)(.*)$`).first
+    match source do
+      Just(m) => return "${escape(m.get(1, ""))}${Markdown.Highlight.highlight(m.get(2, ""))}"
+      None => ()
+    end
+    let gutter = line.scan(re`^( *\|)(.*)$`).first
+    match gutter do
+      Just(m) => return "${escape(m.get(1, ""))}${underline(m.get(2, ""))}"
+      None => ()
+    end
+    return escape(line)
+  end
+
+  # A diagnostic's first line, coloured, or empty when +line+ is not one:
+  # `file.kex:2:3: [KEXEM-0001]: Error, message`, or the
+  # `file.kex:2:3: note: message` that points at a second place.
+  foul header(line: String) -> String do
+    let found = line.scan(re`^(\S+:\d+:\d+:) (\[KEX[EW][A-Z]-\d+\]: (Error|Warning))(.*)$`).first
+    match found do
+      Just(m) => do
+        let kind = m.get(3, "") == "Error" then "error" else "warning"
+        return "<span class=\"loc\">${escape(m.get(1, ""))}</span> <span class=\"label ${kind}\">${escape(m.get(2, ""))}</span>${escape(m.get(4, ""))}"
+      end
+      None => ()
+    end
+    let note = line.scan(re`^(\S+:\d+:\d+:) (note:)(.*)$`).first
+    match note do
+      Just(m) => return "<span class=\"loc\">${escape(m.get(1, ""))}</span> <span class=\"label note\">${escape(m.get(2, ""))}</span>${escape(m.get(3, ""))}"
+      None => ""
+    end
+  end
+
+  # What follows a gutter: `^` under what the diagnostic is about, `-` under
+  # what it points to besides, and the words that say why.
+  foul underline(text: String) -> String do
+    return escape(text)
+      .replace(re`\^+`) { |m| "<span class=\"mark\">${m.get(0, "")}</span>" }
+      .replace(re`(?<![\w-])-+(?![\w-])`) { |m| "<span class=\"mark secondary\">${m.get(0, "")}</span>" }
+  end
+
+  let escape(text: String) -> String = Template.escapeHtml(text)
+
+  # The text of a code block as the Markdown renderer escaped it.
+  let unescape(html: String) -> String do
+    html.replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"")
+      .replace("&#39;", "'").replace("&amp;", "&")
+  end
+end
