@@ -51,10 +51,10 @@ module Oops.Serve do
   foul collect(dir: String, prefix: String) -> [ServedFile] do
     let names = FS.Directory.files(dir).or([])
     let subdirs = FS.Directory.directories(dir).or([])
-    let here = names.flatMap do |name|
+    let here = names.into do |name|
       routesFor(prefix, name).map { |route| ServedFile { route: route, path: FS.Path.join(dir, name) } }
     end
-    let below = subdirs.flatMap { |d| collect(FS.Path.join(dir, d), FS.Path.join(prefix, d)) }
+    let below = subdirs.into { |d| collect(FS.Path.join(dir, d), FS.Path.join(prefix, d)) }
     return here + below
   end
 
@@ -65,7 +65,7 @@ module Oops.Serve do
     end
     # no-cache: the site is rebuilt in place, and a cached page would hide it.
     let headers = Headers.empty.add("Content-Type", contentType(filePath))
-      .flatMap { |added| added.add("Cache-Control", "no-cache") }
+      .into { |added| added.add("Cache-Control", "no-cache") }
     return match headers do
       Ok(value) => Response.binary(200, body, value)
       Error(error) => Response.text(500, error.message)
