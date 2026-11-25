@@ -41,6 +41,10 @@ what makes the compiler report it, an example that does, and how to fix it.
 Every code's page links to the file to write or edit. The message itself is
 not repeated there: it comes from the compiler.
 
+The build fails on an explanation for a code the compiler no longer
+reports, retired or not, since no page would show it: delete the file, or
+rename it to the code that now reports the same mistake.
+
 ## Publishing
 
 `.github/workflows/pages.yml` builds Kex from `main`, builds the site and

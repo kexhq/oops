@@ -59,6 +59,7 @@ module Oops.Site do
   # @return [Result<Integer, String>] how many pages were written
   write : Registry -> Paths -> Result<Integer, String>
   foul write(registry, paths) do
+    unexplainable(registry, paths).try
     FS.Directory.create(FS.Path.join(paths.out, "assets")).mapError(~describe).try
     copyAssets(paths).try
     let explained = registry.entries.map { |entry| (entry, explanationSource(entry, paths)) }
@@ -97,6 +98,23 @@ module Oops.Site do
       FS.File.writeBytes(to, bytes).mapError(~describe).try
     end
     return Ok(())
+  end
+
+  # Fails when `codes/` explains a code the compiler does not report: one it
+  # retired, or one it dropped without retiring. Neither gets a page, so the
+  # file would sit there unseen; delete it, or rename it to the code that
+  # reports the same mistake now.
+  foul unexplainable(registry: Registry, paths: Paths) -> Result<(), String> do
+    let live = registry.entries.map(&.code)
+    let names = FS.Directory.files(paths.codes).mapError(~describe).try
+    let stale = names.filter(&.endsWith?(".md")).map { |name| name.replace(".md", "") }
+      .filter { |code| !live.contains?(code) }.sort
+    return Ok(()) if stale.empty?
+    let lines = stale.map do |code|
+      let why = registry.retired.contains?(code) then "retired" else "no longer reported, and not retired"
+      "  ${paths.codes}/${code}.md: ${code} is ${why}"
+    end
+    return Error("explanations for codes the compiler ${registry.version} does not report:\n${lines.join("\n")}")
   end
 
   # The hand-written explanation of +entry+, the Markdown of
