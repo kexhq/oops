@@ -63,13 +63,25 @@ module Oops.Registry do
   # The registry in +text+, the JSON `kex --explain all --json` writes.
   parse : String -> Result<Registry, String>
   let parse(text) do
-    let document = JSON.parse(text).mapError { |error| "the registry is not JSON: ${error}" }.try
+    # A parsed value is an `Any` until a type pattern narrows it.
+    let document = match JSON.parse(text).mapError { |error| "the registry is not JSON: ${error}" }.try do
+      fields: {String: Any} => fields
+      _ => return Error("the registry is not a JSON object")
+    end
     let fields = Type.named("Oops.Registry.Registry")
     let entries = Type.named("Oops.Registry.Entry")
-    let raw = document.get("entries").or([])
-    let parsed = raw.map { |entry| entries.construct(entry) }
+    let raw = match document.get("entries").or([]) do
+      list: [Any] => list
+      _ => return Error("the registry's entries are not a list")
+    end
+    let parsed = raw.map do |entry|
+      match entry do
+        fields: {String: Any} => entries.construct(fields)
+        _ => Error("a registry entry is not a JSON object")
+      end
+    end
     let built = parsed.reduce(Ok([])) do |acc, entry|
-      acc.flatMap { |list| entry.map { |e| list + [e] } }
+      acc.into { |list| entry.map { |e| list + [e] } }
     end
     return fields.construct({
       "version": document.get("version").or("unknown"),
