@@ -2,10 +2,10 @@
 title: KEXEP-0002
 ---
 
-`:>` is the signature arrow for methods. In a `make Integer` block,
-`double :> Integer` would mean "takes the `Integer` it is called on and
-gives an `Integer`". `double` here is a plain function at the top level,
-where there is no type to call it on.
+`:>` is the signature arrow for the functions of a `make` block. In a
+`make Integer` block, `double :> Integer` would mean "takes the `Integer`
+it is called on and gives an `Integer`". `double` here is a plain function
+at the top level, where there is no type to call it on.
 
 ```kex
 double :> Integer -> Integer

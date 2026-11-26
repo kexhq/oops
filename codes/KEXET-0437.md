@@ -3,7 +3,7 @@ title: KEXET-0437
 ---
 
 `within:` sets how long a call to a server waits for its reply, in
-milliseconds. `2.5` reads like two and a half seconds, but it is a `Float64`,
+milliseconds. `2.5` reads like two and a half seconds, but it is a `Float`,
 and `within:` takes a whole number of milliseconds.
 
 ```kex
@@ -21,7 +21,7 @@ end
 ```
 
 ```
-example.kex:10:35: [KEXET-0437]: Error, `within:` expects Integer milliseconds or :infinity, got Float64
+example.kex:10:35: [KEXET-0437]: Error, `within:` expects Integer milliseconds or :infinity, got Float
    |
 10 |   IO.printLine(list.items(within: 2.5).to(String))
    |                                   ^^^

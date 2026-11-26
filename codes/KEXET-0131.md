@@ -19,7 +19,7 @@ end
 ```
 
 ```
-example.kex:9:1: [KEXET-0131]: Error, make Square, implement: Shape. Missing required method 'area'
+example.kex:9:1: [KEXET-0131]: Error, make Square, implement: Shape. Missing required function 'area'
   |
 9 | make Square, implement: Shape do
   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

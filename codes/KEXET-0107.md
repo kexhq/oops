@@ -19,6 +19,9 @@ end
 ```
 example.kex:4:3: [KEXET-0107]: Error, non-exhaustive match on Shade: missing case(s) Light
   |
+1 | type Shade = Light | Tint(Integer)
+  | ---------------------------------- `Shade` is declared here
+ ...
 4 |   match shade do
   |   ^^^^^^^^^^^^^^
 ```

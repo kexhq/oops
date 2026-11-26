@@ -15,10 +15,10 @@ end
 ```
 
 ```
-example.kex:3:3: [KEXET-0443]: Error, if condition must be Bool, got String?
+example.kex:3:6: [KEXET-0443]: Error, if condition must be Bool, got String?
   |
 3 |   if first
-  |   ^^^^^^^^
+  |      ^^^^^
 ```
 
 ## Fixing it

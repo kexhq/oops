@@ -20,8 +20,8 @@ example.kex:3:3: [KEXET-0411]: Error, cannot assign to immutable binding: count
   |   ^^^^^^^^^^^^^^^^^
 ```
 
-Calling a `!` method on a `let`, such as `names.push!`, is the same mistake,
-reported as [KEXET-0425](../KEXET-0425/).
+Calling a `!` function on a `let`, such as `names.push!`, is the same
+mistake, reported as [KEXET-0425](../KEXET-0425/).
 
 ## Fixing it
 

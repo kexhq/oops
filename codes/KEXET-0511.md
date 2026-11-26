@@ -2,7 +2,7 @@
 title: KEXET-0511
 ---
 
-Some methods are defined for a generic type only when its type argument
+Some functions are defined for a generic type only when its type argument
 can do something. A range is walked one value at a time, so `count`, `map`
 and `sum` need the next value after each one: they work on `Range<A>` only
 where `A` is `Discrete`. `Integer` and `Char` are, `Float` is not, since
