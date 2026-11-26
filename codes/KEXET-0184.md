@@ -2,9 +2,9 @@
 title: KEXET-0184
 ---
 
-`email : String` looks like a field, but a `make` block holds methods. Inside
-it, `email : String` declares a method called `email`, and no `let email`
-follows to define it.
+`email : String` looks like a field, but a `make` block holds functions.
+Inside it, `email : String` declares a function called `email`, and no
+`let email` follows to define it.
 
 ```kex
 record User do
@@ -19,7 +19,7 @@ end
 ```
 
 ```
-example.kex:6:3: [KEXET-0184]: Error, `email` is declared in this `make` block but nothing defines it. Inside a `make` block `email : …` declares a METHOD, not a record field; declare fields in `record User`
+example.kex:6:3: [KEXET-0184]: Error, `email` is declared in this `make` block but nothing defines it. Inside a `make` block `email : …` declares a FUNCTION, not a record field; declare fields in `record User`
   |
 6 |   email : String
   |   ^^^^^^^^^^^^^^

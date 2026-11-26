@@ -2,35 +2,41 @@
 title: KEXET-0486
 ---
 
-Two functions called `sqrt` are in scope, one taking a `Number` and one
-taking a `Float`. `16.0` fits both, and neither is a better match, so the
-compiler will not pick one for you.
+There are two functions called `describe`, one for an `Integer` or a
+`String` and one for an `Integer` or a `Bool`. `1` fits both, and neither
+is a better match, so the compiler will not pick one for you.
 
 ```kex
+let describe(value: Integer | String) = "a number or some text"
+let describe(value: Integer | Bool) = "a number or a flag"
+
 main do
-  IO.printLine(sqrt(16.0))
+  IO.printLine(describe(1))
 end
 ```
 
 ```
-example.kex:2:16: [KEXET-0486]: Error, ambiguous overload for `sqrt`; candidates:
+example.kex:5:16: [KEXET-0486]: Error, ambiguous overload for `describe`; candidates:
 
-sqrt : Number -> Float
+describe : Integer | String -> String
 
-sqrt : Float -> Float
+describe : Integer | Bool -> String
   |
-2 |   IO.printLine(sqrt(16.0))
-  |                ^^^^^^^^^^
+5 |   IO.printLine(describe(1))
+  |                ^^^^^^^^^^^
 ```
 
 ## Fixing it
 
-Say which one you mean, by its module:
+Give each type exactly one overload, so that any argument matches only
+one of them:
 
 ```kex
+let describe(value: Integer) = "a number"
+let describe(value: String) = "some text"
+let describe(value: Bool) = "a flag"
+
 main do
-  IO.printLine(Math.sqrt(16.0))
+  IO.printLine(describe(1))
 end
 ```
-
-`16.0.sqrt` works too.

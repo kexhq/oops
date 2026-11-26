@@ -27,7 +27,7 @@ example.kex:2:3: note: the other definition is here
   |   ------------------------------------------
 ```
 
-Defining a method the standard library already has is
+Defining a function the standard library already has is
 [KEXET-0128](../KEXET-0128/).
 
 ## Fixing it

@@ -21,14 +21,14 @@ end
 ```
 
 ```
-example.kex:9:1: [KEXET-0132]: Error, make FixedClock, implement: Clock. Method 'now' must be declared foul (trait requires it)
+example.kex:9:1: [KEXET-0132]: Error, make FixedClock, implement: Clock. Function 'now' must be declared foul (trait requires it)
   |
 9 | make FixedClock, implement: Clock do
   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ```
 
-Code that calls `now` on a `Clock` already treats it as foul, so the method
-must be declared that way in every type that implements the trait.
+Code that calls `now` on a `Clock` already treats it as foul, so the
+function must be declared that way in every type that implements the trait.
 
 ## Fixing it
 

@@ -16,7 +16,9 @@ example.kex:1:5: [KEXEP-0001]: Error, `break` is a reserved keyword in Kex, so i
   |     ^^^^^
 ```
 
-A keyword used as a variable name is [KEXEP-0124](../KEXEP-0124/).
+A `let match = 1` inside a block is reported the same way. A keyword
+bound by a pattern, as in `let (first, next) = pair`, is
+[KEXEP-0124](../KEXEP-0124/).
 
 ## Fixing it
 

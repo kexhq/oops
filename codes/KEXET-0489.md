@@ -3,7 +3,7 @@ title: KEXET-0489
 ---
 
 `withTax` is in the `private` part of `make Order`, so only the other
-methods of that block can call it. `main` is outside the `Shop` module
+functions of that block can call it. `main` is outside the `Shop` module
 altogether.
 
 ```kex
@@ -36,7 +36,7 @@ example.kex:17:16: [KEXET-0489]: Error, `withTax` is private to `make Shop.Order
 
 ## Fixing it
 
-Call a public method that uses it:
+Call a public function that uses it:
 
 ```kex
 module Shop do

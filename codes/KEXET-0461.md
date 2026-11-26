@@ -19,7 +19,7 @@ end
 ```
 
 ```
-example.kex:5:45: [KEXET-0461]: Error, 'this' has no receiver here: it is only bound inside a `make` block method
+example.kex:5:45: [KEXET-0461]: Error, 'this' has no receiver here: it is only bound inside a function of a `make` block
   |
 5 | let greet(user: User) -> String = "hello, ${@name}"
   |                                             ^

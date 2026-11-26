@@ -2,7 +2,7 @@
 title: KEXEP-0120
 ---
 
-`&:upperCase` is Ruby. In Kex the shorthand for "call this method on each
+`&:upperCase` is Ruby. In Kex the shorthand for "call this function on each
 element" is `&.upperCase`, with a dot.
 
 ```kex
@@ -12,7 +12,7 @@ end
 ```
 
 ```
-example.kex:2:37: [KEXEP-0120]: Error, expected '.' after '&': '&' is receiver shorthand, as in `&.method`
+example.kex:2:37: [KEXEP-0120]: Error, expected '.' after '&': '&' is receiver shorthand, as in `&.size`
   |
 2 |   IO.printLine(["ada", "alan"].map(&:upperCase))
   |                                     ^^^^^^^^^^

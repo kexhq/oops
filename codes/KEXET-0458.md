@@ -16,7 +16,7 @@ end
 example.kex:3:28: [KEXET-0458]: Error, then/else condition must be Bool, got Integer
   |
 3 |   IO.printLine(items.count then "some" else "none")
-  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |                ^^^^^^^^^^^
 ```
 
 In an `if`, the same mistake is [KEXET-0443](../KEXET-0443/).

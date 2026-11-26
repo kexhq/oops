@@ -16,10 +16,10 @@ end
 ```
 
 ```
-example.kex:3:3: [KEXET-0448]: Error, while condition must be Bool, got Integer
+example.kex:3:21: [KEXET-0448]: Error, while condition must be Bool, got Integer
   |
 3 |   while queue.count do
-  |   ^^^^^^^^^^^^^^^^^^^^
+  |         ^^^^^^^^^^^
 ```
 
 ## Fixing it

@@ -3,8 +3,8 @@ title: KEXET-0183
 ---
 
 `User` already has a `name` field. The `name : String` line in the `make`
-block does not repeat it: there it declares a method called `name`, and
-nothing defines that method.
+block does not repeat it: there it declares a function called `name`, and
+nothing defines that function.
 
 ```kex
 record User do
@@ -19,7 +19,7 @@ end
 ```
 
 ```
-example.kex:6:3: [KEXET-0183]: Error, `name` is declared in this `make` block but nothing defines it. Inside a `make` block `name : …` declares a METHOD, not a record field; the field is already declared by `record User`, so drop this line
+example.kex:6:3: [KEXET-0183]: Error, `name` is declared in this `make` block but nothing defines it. Inside a `make` block `name : …` declares a FUNCTION, not a record field; the field is already declared by `record User`, so drop this line
   |
 6 |   name : String
   |   ^^^^^^^^^^^^^

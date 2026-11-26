@@ -2,8 +2,8 @@
 title: KEXET-0425
 ---
 
-A method ending in `!` changes the variable it is called on, and `names` is
-a `let`, which cannot change.
+A function ending in `!` changes the variable it is called on, and `names`
+is a `let`, which cannot change.
 
 ```kex
 main do

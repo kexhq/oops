@@ -2,7 +2,7 @@
 title: KEXET-0182
 ---
 
-`shout : String -> String` declares a method in the `make User` block, but
+`shout : String -> String` declares a function in the `make User` block, but
 there is no `let shout` to go with it.
 
 ```kex
@@ -18,15 +18,15 @@ end
 ```
 
 ```
-example.kex:6:3: [KEXET-0182]: Error, `shout` is declared in this `make` block but nothing defines it. A method the runtime provides is declared with `:>`, which makes the receiver implicit
+example.kex:6:3: [KEXET-0182]: Error, `shout` is declared in this `make` block but nothing defines it. A function the runtime provides is declared with `:>`, which makes the receiver implicit
   |
 6 |   shout : String -> String
   |   ^^^^^^^^^^^^^^^^^^^^^^^^
 ```
 
 The second half of the message is for the standard library, where a few
-methods have no Kex body and are written as `name :> type`. In your own
-code you want the first half: write the method.
+functions have no Kex body and are written as `name :> type`. In your own
+code you want the first half: write the function.
 
 ## Fixing it
 
@@ -47,4 +47,4 @@ main do
 end
 ```
 
-If you did not mean to have a `shout` method at all, delete the line.
+If you did not mean to have a `shout` function at all, delete the line.
